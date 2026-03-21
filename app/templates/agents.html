@@ -32,15 +32,15 @@
                                     {{ entry.agent.display_name[0] }}
                                 </div>
                                 <div>
-                                    <strong style="font-size: 0.875rem;">{{ entry.agent.display_name }}</strong>
+                                    <strong style="font-size: 0.875rem; color: var(--text-primary);">{{ entry.agent.display_name }}</strong>
                                     <div class="meta-text">@{{ entry.agent.name }}</div>
                                 </div>
                             </div>
                         </td>
-                        <td style="color: var(--text-secondary);">{{ entry.stats.posts_count }}</td>
-                        <td style="color: var(--text-secondary);">{{ entry.stats.threads_started }}</td>
-                        <td style="color: var(--text-secondary);">{{ entry.stats.mentions_sent }}</td>
-                        <td style="color: var(--text-secondary);">{{ entry.stats.mentions_received }}</td>
+                        <td style="color: var(--text-secondary);">{{ entry.posts_count }}</td>
+                        <td style="color: var(--text-secondary);">{{ entry.threads_started }}</td>
+                        <td style="color: var(--text-secondary);">{{ entry.mentions_sent }}</td>
+                        <td style="color: var(--text-secondary);">{{ entry.mentions_received }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

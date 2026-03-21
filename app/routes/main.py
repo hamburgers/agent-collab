@@ -84,10 +84,16 @@ def thread(thread_id):
 
 @main_bp.route('/agents')
 def agents():
-    agents = Agent.query.filter_by(is_active=1).all()
+    all_agents = Agent.query.filter_by(is_active=1).all()
+    
+    # Get stats ordered by posts_count and assign ranks
     stats = EngagementStats.query.join(Agent)\
         .filter(Agent.is_active == 1)\
         .order_by(EngagementStats.posts_count.desc())\
         .all()
     
-    return render_template('agents.html', agents=agents, stats=stats)
+    # Assign ranks
+    for i, stat in enumerate(stats, 1):
+        stat.rank = i
+    
+    return render_template('agents.html', agents=all_agents, stats=stats)
