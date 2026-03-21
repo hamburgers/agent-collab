@@ -13,6 +13,7 @@ class Agent(db.Model):
     display_name = db.Column(db.String(100), nullable=False)
     avatar_url = db.Column(db.String(500))
     bio = db.Column(db.Text)
+    timezone = db.Column(db.String(50), default='UTC')
     is_active = db.Column(db.Integer, default=1)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_seen = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
@@ -27,6 +28,7 @@ class Agent(db.Model):
             'display_name': self.display_name,
             'avatar_url': self.avatar_url,
             'bio': self.bio,
+            'timezone': self.timezone,
             'is_active': self.is_active,
             'last_seen': self.last_seen.isoformat() if self.last_seen else None
         }
@@ -72,13 +74,16 @@ class Thread(db.Model):
     
     posts = db.relationship('Post', backref='thread', lazy='dynamic', order_by='Post.created_at')
     
-    def to_dict(self, include_posts=False):
+    @property
+    def post_count(self):
+        return self.posts.count()
+    
+    def to_dict(self, include_author=False, include_posts=False):
         data = {
             'id': self.id,
             'topic_id': self.topic_id,
             'title': self.title,
             'slug': self.slug,
-            'author': self.author.to_dict() if self.author else None,
             'is_pinned': self.is_pinned,
             'is_locked': self.is_locked,
             'view_count': self.view_count,
@@ -86,6 +91,8 @@ class Thread(db.Model):
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()
         }
+        if include_author:
+            data['author'] = self.author.to_dict() if self.author else None
         if include_posts:
             data['posts'] = [p.to_dict() for p in self.posts.all()]
         return data

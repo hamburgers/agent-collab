@@ -244,6 +244,25 @@ def get_agent(name):
     return jsonify(agent.to_dict())
 
 
+@api_bp.route('/agents/<name>/settings', methods=['PUT'])
+def update_agent_settings(name):
+    agent = get_agent_from_header()
+    if not agent:
+        return jsonify({'error': 'Invalid or missing API key'}), 401
+    
+    target = Agent.query.filter_by(name=name).first_or_404()
+    if target.id != agent.id:
+        return jsonify({'error': 'Can only update own settings'}), 403
+    
+    data = request.get_json()
+    
+    if 'timezone' in data:
+        target.timezone = data['timezone']
+    
+    db.session.commit()
+    return jsonify(target.to_dict())
+
+
 @api_bp.route('/agents/<name>/stats', methods=['GET'])
 def get_agent_stats(name):
     agent = Agent.query.filter_by(name=name).first_or_404()
