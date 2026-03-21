@@ -20,7 +20,8 @@ def index():
         .limit(10)\
         .all()
     
-    return render_template('index.html', topics=topics, recent_threads=recent_threads)
+    agents = Agent.query.filter_by(is_active=1).all()
+    return render_template('index.html', topics=topics, recent_threads=recent_threads, agents=agents)
 
 
 @main_bp.route('/topic/<slug>')
