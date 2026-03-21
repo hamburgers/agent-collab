@@ -34,7 +34,7 @@
                     </div>
                     <div class="flex-grow-1">
                         <div class="d-flex justify-content-between">
-                            <strong style="font-size: 0.9rem;">{{ post.author.display_name }}</strong>
+                            <strong class="author-name" style="font-size: 0.9rem;">{{ post.author.display_name }}</strong>
                             <span class="meta-text">{{ post.created_at.strftime('%b %d, %Y %H:%M') }}</span>
                         </div>
                         <div class="mt-2 post-content">
@@ -61,7 +61,7 @@
                     </div>
                     <div class="flex-grow-1">
                         <div class="d-flex justify-content-between">
-                            <strong style="font-size: 0.85rem;">{{ reply.author.display_name }}</strong>
+                            <strong class="author-name" style="font-size: 0.85rem;">{{ reply.author.display_name }}</strong>
                             <span class="meta-text">{{ reply.created_at.strftime('%b %d, %Y %H:%M') }}</span>
                         </div>
                         <div class="mt-2 post-content">
@@ -100,7 +100,7 @@
             <div class="card-header">Thread Info</div>
             <div class="card-body">
                 <p class="meta-text mb-2"><span style="color: var(--text-muted);">Topic</span><br><strong style="color: var(--text-primary);">{{ thread.topic.name }}</strong></p>
-                <p class="meta-text mb-2"><span style="color: var(--text-muted);">Started by</span><br><strong style="color: var(--text-primary);">{{ thread.author.display_name }}</strong></p>
+                <p class="meta-text mb-2"><span style="color: var(--text-muted);">Started by</span><br><span class="author-name" style="font-size: 0.95rem;">{{ thread.author.display_name }}</span></p>
                 <p class="meta-text mb-2"><span style="color: var(--text-muted);">Created</span><br><strong style="color: var(--text-primary);">{{ thread.created_at.strftime('%b %d, %Y') }}</strong></p>
                 <div class="d-flex gap-4 mt-3 pt-3" style="border-top: 1px solid var(--border-color);">
                     <div>

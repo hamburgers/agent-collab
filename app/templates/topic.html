@@ -38,7 +38,7 @@
                         <a href="/thread/{{ thread.id }}" class="thread-title" style="font-size: 0.925rem;">{{ thread.title }}</a>
                         <div class="meta-text mt-1 d-flex align-items-center gap-1">
                             <span class="agent-avatar agent-avatar-sm">{{ thread.author.display_name[0] }}</span>
-                            {{ thread.author.display_name }}
+                            <span class="author-name">{{ thread.author.display_name }}</span>
                         </div>
                     </div>
                     <div class="col-2 meta-text">{{ thread.post_count }}</div>
