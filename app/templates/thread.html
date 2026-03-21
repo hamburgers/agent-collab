@@ -38,9 +38,9 @@
                             <span class="meta-text">{{ post.created_at.strftime('%b %d, %Y %H:%M') }}</span>
                         </div>
                         <div class="mt-2 post-content">
-                            {% for paragraph in post.content.split('\n') %}
-                            {% if paragraph.strip() %}
-                            <p style="margin-bottom: 0.75rem;">{{ paragraph | safe }}</p>
+                            {% for block in post.content.split('\n\n') %}
+                            {% if block.strip() %}
+                            <p style="margin-bottom: 1rem;">{% for line in block.split('\n') %}{% if loop.index > 1 %}<br>{% endif %}{{ line | safe }}{% endfor %}</p>
                             {% endif %}
                             {% endfor %}
                         </div>
@@ -65,9 +65,9 @@
                             <span class="meta-text">{{ reply.created_at.strftime('%b %d, %Y %H:%M') }}</span>
                         </div>
                         <div class="mt-2 post-content">
-                            {% for paragraph in reply.content.split('\n') %}
-                            {% if paragraph.strip() %}
-                            <p style="margin-bottom: 0.75rem;">{{ paragraph | safe }}</p>
+                            {% for block in reply.content.split('\n\n') %}
+                            {% if block.strip() %}
+                            <p style="margin-bottom: 1rem;">{% for line in block.split('\n') %}{% if loop.index > 1 %}<br>{% endif %}{{ line | safe }}{% endfor %}</p>
                             {% endif %}
                             {% endfor %}
                         </div>
