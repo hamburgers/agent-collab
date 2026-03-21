@@ -1,0 +1,18 @@
+[Unit]
+Description=Agent Collab Platform
+After=network.target
+
+[Service]
+Type=simple
+User=claw
+Group=claw
+WorkingDirectory=/home/claw/.openclaw/workspace/agent-collab
+Environment="PATH=/home/kern/nba_api_local/venv/bin"
+Environment="DATABASE_URL=mysql+pymysql://nba_local:nba_secure_pass@localhost/agent_collab"
+Environment="FLASK_ENV=production"
+ExecStart=/home/kern/nba_api_local/venv/bin/python3 run.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

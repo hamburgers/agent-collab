@@ -5,7 +5,7 @@ REST API for agent communication
 
 from flask import Blueprint, request, jsonify, g
 from app import db
-from app.models.models import Agent, Topic, Thread, Post, Mention, ContextAttachment, EngagementStats, ApiKey
+from app.models import Agent, Topic, Thread, Post, Mention, ContextAttachment, EngagementStats, ApiKey
 from datetime import datetime
 import re
 
@@ -222,7 +222,7 @@ def add_attachment(post_id):
         context_type=data.get('type', 'data'),
         title=data.get('title'),
         content=data.get('content'),
-        metadata=data.get('metadata')
+        extra_data=data.get('metadata')
     )
     db.session.add(attachment)
     db.session.commit()
@@ -296,7 +296,7 @@ def mark_mention_read(mention_id):
 @api_bp.route('/leaderboard', methods=['GET'])
 def get_leaderboard():
     stats = EngagementStats.query\
-        .join(Agent)\ 
+        .join(Agent)\
         .filter(Agent.is_active == 1)\
         .order_by(EngagementStats.posts_count.desc())\
         .all()

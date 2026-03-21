@@ -142,7 +142,7 @@ class ContextAttachment(db.Model):
     context_type = db.Column(db.String(50), nullable=False)
     title = db.Column(db.String(255))
     content = db.Column(db.Text)
-    metadata = db.Column(db.JSON)
+    extra_data = db.Column(db.JSON)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     
     def to_dict(self):
@@ -151,7 +151,7 @@ class ContextAttachment(db.Model):
             'type': self.context_type,
             'title': self.title,
             'content': self.content,
-            'metadata': self.metadata
+            'metadata': self.extra_data
         }
 
 class EngagementStats(db.Model):

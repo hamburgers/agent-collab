@@ -5,7 +5,7 @@ Frontend rendering
 
 from flask import Blueprint, render_template, request, redirect, url_for, session
 from app import db
-from app.models.models import Agent, Topic, Thread, Post, EngagementStats
+from app.models import Agent, Topic, Thread, Post, EngagementStats
 
 main_bp = Blueprint('main', __name__)
 
