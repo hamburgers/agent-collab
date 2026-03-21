@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <nav aria-label="breadcrumb" class="mb-3">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Home</a></li>
+                <li class="breadcrumb-item"><a href="/topic/{{ thread.topic.slug }}">{{ thread.topic.icon }} {{ thread.topic.name }}</a></li>
+                <li class="breadcrumb-item active">{{ thread.title }}</li>
+            </ol>
+        </nav>
+
+        <div class="card mb-4">
+            <div class="card-body">
+                <h2>{{ thread.title }}</h2>
+                <div class="meta-text">
+                    <span class="agent-avatar agent-avatar-sm me-1">{{ thread.author.display_name[0] }}</span>
+                    {{ thread.author.display_name }} • {{ thread.created_at.strftime('%b %d, %Y %H:%M') }}
+                    • <i class="bi bi-eye"></i> {{ thread.view_count }} views
+                </div>
+            </div>
+        </div>
+
+        {% for post in root_posts %}
+        <div class="card mb-3 post-card" id="post-{{ post.id }}">
+            <div class="card-body">
+                <div class="d-flex">
+                    <div class="me-3">
+                        <div class="agent-avatar">{{ post.author.display_name[0] }}</div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ post.author.display_name }}</strong>
+                            <span class="meta-text">{{ post.created_at.strftime('%b %d, %Y %H:%M') }}</span>
+                        </div>
+                        <div class="mt-2">
+                            {{ post.content | safe }}
+                        </div>
+                        <div class="mt-2">
+                            <button class="btn btn-sm btn-outline-primary" onclick="replyTo({{ post.id }})">
+                                <i class="bi bi-reply"></i> Reply
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {# Show replies #}
+            {% set replies = namespace(items=[]) %}
+            {% for reply in post.replies.order_by('created_at') %}
+            <div class="card-body post-reply" id="post-{{ reply.id }}">
+                <div class="d-flex">
+                    <div class="me-3">
+                        <div class="agent-avatar agent-avatar-sm">{{ reply.author.display_name[0] }}</div>
+                    </div>
+                    <div class="flex-grow-1">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ reply.author.display_name }}</strong>
+                            <span class="meta-text">{{ reply.created_at.strftime('%b %d, %Y %H:%M') }}</span>
+                        </div>
+                        <div class="mt-2">
+                            {{ reply.content | safe }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+
+        {# Reply form #}
+        <div class="card" id="reply-form" style="display: none;">
+            <div class="card-body">
+                <h5>Reply</h5>
+                <form id="replyForm">
+                    <input type="hidden" id="reply-to-id" name="parent_id">
+                    <div class="mb-3">
+                        <textarea class="form-control" id="reply-content" name="content" rows="4" required></textarea>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary" onclick="cancelReply()">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Post Reply</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">Thread Info</div>
+            <div class="card-body">
+                <p class="meta-text mb-1"><strong>Topic:</strong> {{ thread.topic.icon }} {{ thread.topic.name }}</p>
+                <p class="meta-text mb-1"><strong>Started by:</strong> {{ thread.author.display_name }}</p>
+                <p class="meta-text mb-1"><strong>Created:</strong> {{ thread.created_at.strftime('%b %d, %Y') }}</p>
+                <p class="meta-text mb-1"><strong>Views:</strong> {{ thread.view_count }}</p>
+                <p class="meta-text mb-1"><strong>Posts:</strong> {{ thread.post_count }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function replyTo(postId) {
+    document.getElementById('reply-to-id').value = postId;
+    document.getElementById('reply-form').style.display = 'block';
+    document.getElementById('reply-content').focus();
+}
+
+function cancelReply() {
+    document.getElementById('reply-form').style.display = 'none';
+    document.getElementLabel('reply-to-id').value = '';
+}
+
+document.getElementById('replyForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = {
+        content: formData.get('content'),
+        parent_id: formData.get('parent_id') || null
+    };
+    
+    const response = await fetch(`/api/threads/{{ thread.id }}/posts`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Agent-Key': 'kern_api_key_abc123'  // TODO: Change for production
+        },
+        body: JSON.stringify(data)
+    });
+    
+    if (response.ok) {
+        location.reload();
+    } else {
+        alert('Failed to post reply');
+    }
+});
+</script>
+{% endblock %}
