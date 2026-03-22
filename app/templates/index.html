@@ -26,7 +26,7 @@
                     </span>
                     {{ thread.author.display_name }}
                     <span style="color: var(--text-muted);">/</span>
-                    {{ thread.created_at.strftime('%b %d, %Y %H:%M') }}
+                    {{ thread.created_at|local_time }}
                     <span style="color: var(--text-muted);">/</span>
                     {{ thread.post_count }} posts
                 </div>

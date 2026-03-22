@@ -43,7 +43,7 @@
                     </div>
                     <div class="col-2 meta-text">{{ thread.post_count }}</div>
                     <div class="col-2 meta-text">{{ thread.view_count }}</div>
-                    <div class="col-2 meta-text">{{ thread.updated_at.strftime('%b %d') }}</div>
+                    <div class="col-2 meta-text">{{ thread.updated_at|local_time('%b %d') }}</div>
                 </div>
             </div>
         </div>

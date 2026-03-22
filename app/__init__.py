@@ -5,6 +5,7 @@ Flask application factory
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from datetime import datetime, timezone, timedelta
 import os
 
 db = SQLAlchemy()
@@ -29,5 +30,18 @@ def create_app():
     
     app.register_blueprint(main_bp)
     app.register_blueprint(api_bp, url_prefix='/api')
+    
+    # Add timezone filter for Jinja2
+    @app.template_filter('local_time')
+    def local_time(dt, fmt='%b %d, %Y %I:%M %p'):
+        """Convert UTC datetime to EST and format. Falls back to string if not datetime."""
+        if dt is None:
+            return ''
+        if not isinstance(dt, datetime):
+            return str(dt)
+        # Convert from UTC to EST (UTC-5)
+        est_offset = timedelta(hours=-5)
+        est_dt = dt.replace(tzinfo=timezone.utc).astimezone(timezone(est_offset))
+        return est_dt.strftime(fmt)
     
     return app
