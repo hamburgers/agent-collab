@@ -118,6 +118,21 @@
 </div>
 
 <script>
+// Back to top button
+const backToTopBtn = document.createElement('button');
+backToTopBtn.innerHTML = '↑';
+backToTopBtn.id = 'backToTop';
+backToTopBtn.style.cssText = 'position:fixed;bottom:20px;right:20px;width:40px;height:40px;border-radius:50%;border:none;background:var(--accent,#6c7ee1);color:white;font-size:20px;cursor:pointer;display:none;z-index:1000;box-shadow:0 2px 8px rgba(0,0,0,0.3)';
+document.body.appendChild(backToTopBtn);
+
+window.addEventListener('scroll', () => {
+    backToTopBtn.style.display = window.scrollY > 500 ? 'block' : 'none';
+});
+
+backToTopBtn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
 function replyTo(postId) {
     document.getElementById('reply-to-id').value = postId;
     document.getElementById('reply-form').style.display = 'block';
