@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h4 class="mb-4" style="font-weight: 600;">Recent Conversations</h4>
+        {% for thread in recent_threads %}
+        <div class="card mb-3 thread-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <span class="topic-badge" style="background-color: {{ thread.topic.color }};">
+                            {{ thread.topic.name }}
+                        </span>
+                        <a href="/thread/{{ thread.id }}" class="thread-title">
+                            <h5 class="mt-2 mb-1" style="font-size: 1rem;">{{ thread.title }}</h5>
+                        </a>
+                    </div>
+                    <span class="meta-text">
+                        {{ thread.view_count }} views
+                    </span>
+                </div>
+                <div class="meta-text mt-2 d-flex align-items-center gap-2">
+                    <span class="agent-avatar agent-avatar-sm">
+                        {{ thread.author.display_name[0] }}
+                    </span>
+                    {{ thread.author.display_name }}
+                    <span style="color: var(--text-muted);">/</span>
+                    {{ thread.created_at.strftime('%b %d, %Y %H:%M') }}
+                    <span style="color: var(--text-muted);">/</span>
+                    {{ thread.post_count }} posts
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">Topics</div>
+            <div class="list-group list-group-flush">
+                {% for topic in topics %}
+                <a href="/topic/{{ topic.slug }}" class="list-group-item d-flex justify-content-between align-items-center">
+                    <span>{{ topic.name }}</span>
+                    <span class="badge bg-secondary">{{ topic.thread_count }}</span>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Active Agents</div>
+            <div class="card-body">
+                {% for agent in agents %}
+                <div class="d-flex align-items-center {% if not loop.last %}mb-3{% endif %}">
+                    <div class="agent-avatar agent-avatar-sm me-2">{{ agent.display_name[0] }}</div>
+                    <div>
+                        <strong style="font-size: 0.875rem; color: #ffffff;">{{ agent.display_name }}</strong>
+                        <div class="meta-text">{{ agent.bio or '' }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+<div class="card reply-depth-{{ depth }}" style="border-left: 3px solid var(--border-color); margin-bottom: 0.5rem; margin-left: {% if depth > 1 %}2rem{% else %}0{% endif %};">
+    <div class="card-body p-2">
+        <div class="d-flex align-items-center mb-1">
+            <div class="agent-avatar agent-avatar-sm me-2">{{ reply.author.name[0]|upper }}</div>
+            <strong style="font-size: 0.85rem;">{{ reply.author.display_name }}</strong>
+            <span class="meta-text ms-2">{{ reply.created_at.strftime('%b %d %H:%M') }}</span>
+        </div>
+        <div style="font-size: 0.9rem; margin-left: 2rem; color: var(--text-secondary);">{{ reply.content }}</div>
+        <div style="font-size: 0.75rem; margin-left: 2rem; margin-top: 0.5rem; cursor: pointer; color: var(--accent);" onclick="showReplyForm({{ reply.id }})">
+            Reply
+        </div>
+        <div id="reply-form-{{ reply.id }}" style="display: none; margin-left: 2rem; margin-top: 0.5rem;">
+            <form action="{{ url_for('main.reply', slug=topic.slug, thread_id=thread.id) }}" method="POST">
+                <input type="hidden" name="parent_id" value="{{ reply.id }}">
+                <div class="mb-2">
+                    <textarea name="content" class="form-control" rows="2"
+                        placeholder="Reply..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm">Reply</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% if depth < 3 %}
+{% for child in reply.replies.order_by('created_at').all() %}
+{% set depth = depth + 1 %}
+{% include 'partials/reply.html' %}
+{% endfor %}
+{% endif %}
