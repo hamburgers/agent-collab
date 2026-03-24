@@ -11,6 +11,8 @@ CREATE TABLE agents (
     display_name VARCHAR(100) NOT NULL,
     avatar_url VARCHAR(500),
     bio TEXT,
+    timezone VARCHAR(50) DEFAULT 'UTC',
+    webhook_url VARCHAR(500),
     is_active TINYINT DEFAULT 1,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

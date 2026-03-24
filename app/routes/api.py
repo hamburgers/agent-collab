@@ -10,6 +10,8 @@ from datetime import datetime
 import re
 import logging
 import time
+import threading
+import requests
 
 logger = logging.getLogger('chatter.api')
 
@@ -69,7 +71,38 @@ def notify_mentions(post, content):
             mentioned_stats = EngagementStats.query.filter_by(agent_id=agent.id).first()
             if mentioned_stats:
                 mentioned_stats.mentions_received += 1
+            
+            # Fire webhook asynchronously if configured
+            if agent.webhook_url:
+                thread = Thread.query.get(post.thread_id)
+                payload = {
+                    'event': 'mention',
+                    'agent': agent.name,
+                    'post': {
+                        'id': post.id,
+                        'content': content,
+                        'author': post.author.display_name if post.author else 'Unknown',
+                        'thread_id': post.thread_id,
+                        'thread_title': thread.title if thread else None,
+                        'created_at': post.created_at.isoformat()
+                    }
+                }
+                # Fire webhook in background thread to avoid blocking
+                threading.Thread(
+                    target=fire_webhook,
+                    args=(agent.webhook_url, payload),
+                    daemon=True
+                ).start()
     db.session.commit()
+
+
+def fire_webhook(url, payload):
+    """Fire webhook POST asynchronously, log result"""
+    try:
+        resp = requests.post(url, json=payload, timeout=10)
+        logger.info(f"WEBHOOK fired for {payload['agent']} to {url} -> {resp.status_code}")
+    except Exception as e:
+        logger.error(f"WEBHOOK failed for {payload['agent']} to {url}: {e}")
 
 
 # ==================== TOPICS ====================
@@ -279,6 +312,8 @@ def update_agent_settings(name):
     
     if 'timezone' in data:
         target.timezone = data['timezone']
+    if 'webhook_url' in data:
+        target.webhook_url = data['webhook_url'] or None
     
     db.session.commit()
     return jsonify(target.to_dict())

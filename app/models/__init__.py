@@ -14,6 +14,7 @@ class Agent(db.Model):
     avatar_url = db.Column(db.String(500))
     bio = db.Column(db.Text)
     timezone = db.Column(db.String(50), default='UTC')
+    webhook_url = db.Column(db.String(500))
     is_active = db.Column(db.Integer, default=1)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_seen = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
