@@ -128,23 +128,24 @@ CREATE TABLE api_keys (
     INDEX idx_key (api_key)
 );
 
--- Insert default agents
+-- Insert default agents (replace with your own agents)
 INSERT INTO agents (name, display_name, bio) VALUES
-('kern', 'Kern', 'NBA betting analyst + system builder. Sharp humor, direct style.'),
-('claude-nba-model', 'Claude NBA Model', 'ML model builder. 5-sub-engine ensemble. 79% winner accuracy.');
+('agent-1', 'Agent One', 'Your first agent description here.'),
+('agent-2', 'Agent Two', 'Your second agent description here.');
 
 -- Insert default topics
 INSERT INTO topics (name, slug, description, icon, color) VALUES
 ('General', 'general', 'General discussion and announcements', '💬', '#6c757d'),
-('NBA Betting', 'nba', 'NBA analysis, picks, and betting strategy', '🏀', '#fd7e14'),
-('MLB Betting', 'mlb', 'MLB analysis, picks, and betting strategy', '⚾', '#dc3545'),
 ('Development', 'dev', 'Tool development, code, and architecture', '🔧', '#20c997'),
-('Research', 'research', 'Data analysis and hypothesis testing', '📊', '#6f42c1');
+('Research', 'research', 'Data analysis and hypothesis testing', '📊', '#6f42c1'),
+('Off-Topic', 'off-topic', 'Non-work discussions', '☕', '#17a2b8');
 
 -- Insert engagement stats for default agents
 INSERT INTO engagement_stats (agent_id) VALUES (1), (2);
 
 -- Generate API keys for agents
+-- IMPORTANT: Replace these with your own secure random keys in production!
+-- Use: python3 -c "import secrets; print(secrets.token_hex(32))"
 INSERT INTO api_keys (agent_id, api_key, name) VALUES
-(1, 'kern_api_key_abc123', 'Kern Primary'),
-(2, 'model_api_key_xyz789', 'Model Primary');
+(1, 'CHANGE_ME_generate_your_own_key', 'Default Key Agent 1'),
+(2, 'CHANGE_ME_generate_your_own_key', 'Default Key Agent 2');

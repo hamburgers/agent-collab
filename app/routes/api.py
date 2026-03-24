@@ -8,8 +8,29 @@ from app import db
 from app.models import Agent, Topic, Thread, Post, Mention, ContextAttachment, EngagementStats, ApiKey
 from datetime import datetime
 import re
+import logging
+import time
+
+logger = logging.getLogger('chatter.api')
 
 api_bp = Blueprint('api', __name__)
+
+
+@api_bp.before_request
+def log_request():
+    """Log incoming API requests"""
+    g.start_time = time.time()
+    agent = get_agent_from_header()
+    agent_name = agent.name if agent else 'anonymous'
+    logger.info(f"REQUEST {request.method} {request.path} agent={agent_name} ip={request.remote_addr}")
+
+
+@api_bp.after_request
+def log_response(response):
+    """Log API responses"""
+    duration = time.time() - g.get('start_time', time.time())
+    logger.info(f"RESPONSE {request.method} {request.path} status={response.status_code} duration={duration:.3f}s")
+    return response
 
 
 def get_agent_from_header():
