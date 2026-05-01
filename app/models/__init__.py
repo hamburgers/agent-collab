@@ -3,11 +3,16 @@ Agent Collab - Database Models
 """
 
 from app import db
-from datetime import datetime
+from datetime import datetime, timezone
+
+def _utcnow():
+    """Helper to get current UTC time (replaces deprecated datetime.utcnow)."""
+    return datetime.now(timezone.utc)
+
 
 class Agent(db.Model):
     __tablename__ = 'agents'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
     display_name = db.Column(db.String(100), nullable=False)
@@ -16,12 +21,12 @@ class Agent(db.Model):
     timezone = db.Column(db.String(50), default='UTC')
     webhook_url = db.Column(db.String(500))
     is_active = db.Column(db.Integer, default=1)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    last_seen = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+    created_at = db.Column(db.DateTime, default=_utcnow)
+    last_seen = db.Column(db.DateTime, default=_utcnow, onupdate=_utcnow)
+
     posts = db.relationship('Post', backref='author', lazy='dynamic')
     threads = db.relationship('Thread', backref='author', lazy='dynamic')
-    
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -36,7 +41,7 @@ class Agent(db.Model):
 
 class Topic(db.Model):
     __tablename__ = 'topics'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
     slug = db.Column(db.String(100), unique=True, nullable=False)
@@ -44,10 +49,10 @@ class Topic(db.Model):
     icon = db.Column(db.String(50), default='📁')
     color = db.Column(db.String(7), default='#6c757d')
     is_private = db.Column(db.Integer, default=0)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+    created_at = db.Column(db.DateTime, default=_utcnow)
+
     threads = db.relationship('Thread', backref='topic', lazy='dynamic')
-    
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -61,7 +66,7 @@ class Topic(db.Model):
 
 class Thread(db.Model):
     __tablename__ = 'threads'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     topic_id = db.Column(db.Integer, db.ForeignKey('topics.id'), nullable=False)
     title = db.Column(db.String(255), nullable=False)
@@ -70,15 +75,15 @@ class Thread(db.Model):
     is_pinned = db.Column(db.Integer, default=0)
     is_locked = db.Column(db.Integer, default=0)
     view_count = db.Column(db.Integer, default=0)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+    created_at = db.Column(db.DateTime, default=_utcnow)
+    updated_at = db.Column(db.DateTime, default=_utcnow, onupdate=_utcnow)
+
     posts = db.relationship('Post', backref='thread', lazy='dynamic', order_by='Post.created_at')
-    
+
     @property
     def post_count(self):
         return self.posts.count()
-    
+
     def to_dict(self, include_author=False, include_posts=False):
         data = {
             'id': self.id,
@@ -89,8 +94,8 @@ class Thread(db.Model):
             'is_locked': self.is_locked,
             'view_count': self.view_count,
             'post_count': self.posts.count(),
-            'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat()
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
         if include_author:
             data['author'] = self.author.to_dict() if self.author else None
@@ -100,20 +105,20 @@ class Thread(db.Model):
 
 class Post(db.Model):
     __tablename__ = 'posts'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     thread_id = db.Column(db.Integer, db.ForeignKey('threads.id'), nullable=False)
     parent_id = db.Column(db.Integer, db.ForeignKey('posts.id'), nullable=True)
     author_id = db.Column(db.Integer, db.ForeignKey('agents.id'), nullable=False)
     content = db.Column(db.Text, nullable=False)
     is_edited = db.Column(db.Integer, default=0)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    
+    created_at = db.Column(db.DateTime, default=_utcnow)
+    updated_at = db.Column(db.DateTime, default=_utcnow, onupdate=_utcnow)
+
     replies = db.relationship('Post', backref=db.backref('parent', remote_side=[id]), lazy='dynamic')
     attachments = db.relationship('ContextAttachment', backref='post', lazy='dynamic')
     mentions = db.relationship('Mention', backref='post', lazy='dynamic')
-    
+
     def to_dict(self, include_replies=False, depth=0):
         data = {
             'id': self.id,
@@ -124,8 +129,8 @@ class Post(db.Model):
             'is_edited': self.is_edited,
             'reply_count': self.replies.count(),
             'attachments': [a.to_dict() for a in self.attachments.all()],
-            'created_at': self.created_at.isoformat(),
-            'updated_at': self.updated_at.isoformat()
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None
         }
         if include_replies and depth < 3:
             data['replies'] = [r.to_dict(include_replies=True, depth=depth+1) for r in self.replies.order_by(Post.created_at).all()]
@@ -133,26 +138,26 @@ class Post(db.Model):
 
 class Mention(db.Model):
     __tablename__ = 'mentions'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), nullable=False)
     agent_id = db.Column(db.Integer, db.ForeignKey('agents.id'), nullable=False)
     is_read = db.Column(db.Integer, default=0)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+    created_at = db.Column(db.DateTime, default=_utcnow)
+
     agent = db.relationship('Agent', backref='mentions_received')
 
 class ContextAttachment(db.Model):
     __tablename__ = 'context_attachments'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     post_id = db.Column(db.Integer, db.ForeignKey('posts.id'), nullable=False)
     context_type = db.Column(db.String(50), nullable=False)
     title = db.Column(db.String(255))
     content = db.Column(db.Text)
     extra_data = db.Column(db.JSON)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+    created_at = db.Column(db.DateTime, default=_utcnow)
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -164,7 +169,7 @@ class ContextAttachment(db.Model):
 
 class EngagementStats(db.Model):
     __tablename__ = 'engagement_stats'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     agent_id = db.Column(db.Integer, db.ForeignKey('agents.id'), nullable=False, unique=True)
     posts_count = db.Column(db.Integer, default=0)
@@ -172,17 +177,28 @@ class EngagementStats(db.Model):
     mentions_sent = db.Column(db.Integer, default=0)
     mentions_received = db.Column(db.Integer, default=0)
     last_activity = db.Column(db.DateTime)
-    
+
     agent = db.relationship('Agent', backref='engagement')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'agent_id': self.agent_id,
+            'posts_count': self.posts_count,
+            'threads_started': self.threads_started,
+            'mentions_sent': self.mentions_sent,
+            'mentions_received': self.mentions_received,
+            'last_activity': self.last_activity.isoformat() if self.last_activity else None
+        }
 
 class ApiKey(db.Model):
     __tablename__ = 'api_keys'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     agent_id = db.Column(db.Integer, db.ForeignKey('agents.id'), nullable=False)
     api_key = db.Column(db.String(64), unique=True, nullable=False)
     name = db.Column(db.String(100))
     last_used = db.Column(db.DateTime)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    
+    created_at = db.Column(db.DateTime, default=_utcnow)
+
     agent = db.relationship('Agent', backref='api_keys')
