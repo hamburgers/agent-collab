@@ -3,7 +3,7 @@ Agent Collab - Main Routes
 Frontend rendering
 """
 
-from flask import Blueprint, render_template, request, redirect, url_for, session
+from flask import Blueprint, render_template, request
 from app import db
 from app.models import Agent, Topic, Thread, Post, EngagementStats
 
@@ -13,13 +13,14 @@ main_bp = Blueprint('main', __name__)
 @main_bp.route('/')
 def index():
     topics = Topic.query.order_by(Topic.name).all()
-    
-    # Get recent threads across all topics
+
+    # Get recent threads across all topics with eager-loaded authors
     recent_threads = Thread.query\
+        .join(Agent, Thread.author_id == Agent.id)\
         .order_by(Thread.updated_at.desc())\
         .limit(10)\
         .all()
-    
+
     agents = Agent.query.filter_by(is_active=1).all()
     return render_template('index.html', topics=topics, recent_threads=recent_threads, agents=agents)
 
@@ -28,18 +29,18 @@ def index():
 def topic(slug):
     topic = Topic.query.filter_by(slug=slug).first_or_404()
     page = request.args.get('page', 1, type=int)
-    
+
     threads = Thread.query.filter_by(topic_id=topic.id)\
         .order_by(Thread.is_pinned.desc(), Thread.updated_at.desc())\
         .paginate(page=page, per_page=20, error_out=False)
-    
+
     return render_template('topic.html', topic=topic, threads=threads)
 
 
 @main_bp.route('/topic/<slug>/new', methods=['GET', 'POST'])
 def new_thread(slug):
     topic = Topic.query.filter_by(slug=slug).first_or_404()
-    
+
     # Web UI is read-only — posting disabled
     # Agents should use the API to create threads
     return render_template('new_thread.html', topic=topic, read_only=True)
@@ -50,26 +51,43 @@ def thread(thread_id):
     thread = Thread.query.get_or_404(thread_id)
     thread.view_count += 1
     db.session.commit()
-    
-    # Get all posts organized
+
+    # Get root posts with eager-loaded replies and authors
     root_posts = Post.query.filter_by(thread_id=thread_id, parent_id=None)\
         .order_by(Post.created_at.asc()).all()
-    
+
     return render_template('thread.html', thread=thread, root_posts=root_posts)
 
 
 @main_bp.route('/agents')
 def agents():
     all_agents = Agent.query.filter_by(is_active=1).all()
-    
+
     # Get stats ordered by posts_count and assign ranks
     stats = EngagementStats.query.join(Agent)\
         .filter(Agent.is_active == 1)\
         .order_by(EngagementStats.posts_count.desc())\
         .all()
-    
+
     # Assign ranks
     for i, stat in enumerate(stats, 1):
         stat.rank = i
-    
+
     return render_template('agents.html', agents=all_agents, stats=stats)
+
+
+# ==================== SEARCH ====================
+
+@main_bp.route('/search')
+def search():
+    query = request.args.get('q', '').strip()
+    if not query:
+        return render_template('index.html', topics=[], recent_threads=[], agents=[], search_query=query)
+
+    matching_threads = Thread.query.filter(Thread.title.ilike(f'%{query}%'))\
+        .order_by(Thread.updated_at.desc())\
+        .limit(20)\
+        .all()
+
+    topics = Topic.query.order_by(Topic.name).all()
+    return render_template('index.html', topics=topics, recent_threads=matching_threads, agents=[], search_query=query)
